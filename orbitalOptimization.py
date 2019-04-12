@@ -16,30 +16,6 @@ c_d = 0.47          # (.) Drag coefficient of a sphere
 alpha = c_d * rho * A / 2.   # Initially assume air-resitance is zero
 
 
-def f(u):
-    ### TODO: define f(z)
-
-    out = np.zeros(2)
-    out[0] = u[1]
-    out[1] = -g / l * np.sin(u[0]) - alpha * l / m * u[1] * abs(l * u[1])
-    return np.array(out)
-
-
-def dfdu(u):
-    out = np.zeros((2, 2))
-
-    out[0][0] = 0
-    out[0][1] = 1
-    out[1][0] = -g / l * np.cos(u[0])
-    if u[1] == 0:
-        out[1][1] = 0
-    else:
-        out[1][1] = -alpha * l / m * (l ** 2 * u[1] ** 2 / abs(l * u[1]) + abs(l * u[1]))
-    #TODO: define f'(z)
-
-    return np.array(out)
-
-
 def fe(ui, f, dfdu, dt):
     """
     Single step of forward-Euler.
@@ -84,8 +60,6 @@ def plot(u, T_final):
     plt.ylabel('deg')
 
 
-
-
 def plot_stability_region(stabfn):
     """
     Given a stability fn for a particular scheme, plot the stability region.
@@ -128,9 +102,6 @@ def plot_eigvals(u, dfdu, dt):
 
 def fe_stability(z): return 1 + z
 
-
-
-# TODO: Investigate the stability of FE for the pendulum
 
 def newton(f, dfdx, x_0, iter_max=10, min_error=1e-14):
     """
@@ -187,7 +158,6 @@ def be_stability(z):
     return 1 / (z - 1)
 
 
-
 def rk4(u, f, dfdu, dt):
     """
     Runge-Kutta explicit 4-stage scheme - single step.
@@ -212,9 +182,6 @@ def rk4(u, f, dfdu, dt):
 def rk4_stability(z):
     return 1 + z + z ** 2 / 2 + z ** 3 / 6 + z ** 4 / 24
 
-
-# TODO ... fill in your net_id
-net_id = 'jordi'
 
 n_body = 3
 M_multibody = 4 * n_body
