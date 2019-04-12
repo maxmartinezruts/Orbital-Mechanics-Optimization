@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from copy import deepcopy
 from time import time
 from scipy import optimize
-import math
 
 l   = 1.            # (m) Length of pendulum
 g   = 9.81          # (m/s^2)
