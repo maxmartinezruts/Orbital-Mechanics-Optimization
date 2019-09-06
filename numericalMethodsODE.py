@@ -1,11 +1,10 @@
+#-------------------------------#
+# Author:   Max Martinez Ruts
+# Creation: 2019
+#-------------------------------#
+
 import numpy as np
 import matplotlib.pyplot as plt
-from copy import deepcopy
-from time import time
-from scipy import optimize
-
-
-
 
 def fe(ui, f, dfdu, dt):
     """

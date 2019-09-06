@@ -1,4 +1,10 @@
+# -------------------------------#
+# Author:   Max Martinez Ruts
+# Creation: 2019
+# -------------------------------#
+
 import numpy as np
+import math
 
 n_body = 3
 M_multibody = 4 * n_body
@@ -8,6 +14,8 @@ masses = [5.972e24,         # Mass of earth [kg]
 G = 6.67384e-11             # Universal graviational constant
 
 x_moon = 384400.0e3  # [m]
+
+print(math.sqrt(G*masses[0]/(x_moon/20)))
 
 # Calculate velocity of earth/moon resulting in a circular orbit
 # about the Earth-moon CoM.
