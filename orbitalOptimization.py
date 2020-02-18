@@ -9,6 +9,7 @@ from scipy import optimize
 import numericalMethodsODE as ODE
 import multibodySimulation as SIM
 import pygame
+import time
 
 # Convert coordinates form cartesian to screen coordinates (used to draw in pygame screen)
 def cartesian_to_screen(car_pos):
@@ -32,52 +33,49 @@ yellow = (255,255, 0)
 
 fpsClock = pygame.time.Clock()
 
-T_final = 24 * 7 * 3600 *1                                  # Duration simulation
-dt = 60 * 5                                                 # Delta time [s]
+T_final = 24 * 7 * 3600 *1                                 # Duration simulation
+dt =  60 *5                                       # Delta time [s]
 N = T_final / dt                                            # Number of steps [-]
 perigee = 1/550                                             # Perigee of desired orbit/xmoon [-]
-v_center = np.array([6273,-100])                            # Initial velocity and angle guess
+v_center = np.array([7793,270])                             # Initial velocity and angle guess
+ts = 0
+v_center = np.array([ 10.49080329,   2.66576622, 299.96015532, 312.24811105])
 x_moon = SIM.x_moon                                         # Distance Earth - Moon
 n_body = SIM.n_body                                         # Number of bodies
 
 # Plot initial orbit
-u_0 = np.array(SIM.init_multibody(v_center))
-u = ODE.predict(u_0, SIM.f_multibody, SIM.dfdu_multibody, T_final, N, ODE.rk4)  # Results
-
-# plt.ion()
-# plt.figure()
+# u_0 = np.array(SIM.init_multibody(v_center))
+# u = ODE.predict(u_0, SIM.f_multibody, SIM.dfdu_multibody, T_final, N, ODE.rk4)  # Results
 
 def min_distance(v_0):
-    u_0 = np.array(SIM.init_multibody(v_0))
-    u = ODE.predict(u_0, SIM.f_multibody, SIM.dfdu_multibody, T_final, N, ODE.rk4)  # Results
+    u_0 = np.array(SIM.init_multibody())
+    u = ODE.predict(u_0, SIM.f_multibody, SIM.dfdu_multibody, T_final*3, None, ODE.rk4, v_0)  # Results
     p_moon = np.array([u[:, 1], u[:, 4]])                           # Positions of Moon
+    print(p_moon)
     p_sat = np.array([u[:, 2], u[:, 5]])                            # Positions of Satellite
     p_eth = np.array([u[:, 0], u[:, 3]])                            # Positions of Earth
     p_dif = p_moon - p_sat                                          # Difference moon-sat (vectorial)
     dists = np.linalg.norm(p_dif, axis=0)                           # Difference moon-sat (scalar)
     min_dist = np.min(dists)                                        # Minimum distance moon-sat (within 1 week)
-    cost =np.e**((min_dist/x_moon-1/600)**2)                        # A peak is desired at the perigee distance, therefore a peak function (gaussian) is applied
-    print(v_0,'Distance/distance moon: ',x_moon/min_dist,'Cost:', cost)
+    print(min_dist)
+
+    cost =abs((min_dist-300000)/100000000)
+    # A peak is desired at the perigee distance, therefore a peak function (gaussian) is applied
+    print(v_0,'Distance/distance moon: ', min_dist, x_moon/min_dist,'Cost:', cost)
     i = 0
     # Game loop
     screen.fill((0,0,0))
+    pygame.display.flip()
+
     while i < p_moon.shape[1]:
         pygame.event.get()
-        pygame.draw.circle(screen, (255, 0, 0), cartesian_to_screen(p_moon[:,i]/100000000), 3)
+        pygame.draw.circle(screen, (0, 255, 0), cartesian_to_screen(p_moon[:,i]/100000000), 3)
         pygame.draw.circle(screen, (255, 255, 255), cartesian_to_screen(p_sat[:,i]/100000000), 3)
         pygame.draw.circle(screen, (0, 255, 0), cartesian_to_screen(p_eth[:,i]/100000000), 3)
         i+=10
         pygame.display.flip()
-        fpsClock.tick(50000)
-    # plt.clf()
-    # plt.plot(u[:, 0], u[:, 0 + n_body], '-or', label='Earth')
-    # plt.plot(u[:, 1], u[:, 1 + n_body], '-k', label='Moon')
-    # plt.plot(u[:, 2], u[:, 2 + n_body], '-g', label='You')
-    # plt.title('Initial conditions')
-    # plt.xlim(-2.1 * x_moon, 2.1 * x_moon)
-    # plt.ylim(-2.1 * x_moon, 2.1 * x_moon)
-    # plt.legend()
-    # plt.pause(0.01)
+        time.sleep(0.0000025)
+
     return np.e**((min_dist/x_moon-perigee)**2)
 
 v_center = optimize.fmin(min_distance,v_center,maxiter=30)
@@ -86,15 +84,16 @@ T_final = 24 * 7 * 3600 *3                                  # Duration simulatio
 dt = 60 * 5                                                 # Delta time [s]
 N = T_final / dt
 # Plot initial orbit
-u_0 = np.array(SIM.init_multibody(v_center))
-u = ODE.predict(u_0, SIM.f_multibody, SIM.dfdu_multibody, T_final, N, ODE.rk4)  # Results
+# u_0 = np.array(SIM.init_multibody(v_center))
+# u = ODE.predict(u_0, SIM.f_multibody, SIM.dfdu_multibody, T_final, N, ODE.rk4)  # Results
+# v_center = np.array([120, 4.507 * 3600 * 24, 785])
 
 print(v_center)
 
 # Cost function that maximizes the time oribiting around moon
 def max_time(v_0):
-    u_0 = np.array(SIM.init_multibody(v_0))
-    u = ODE.predict(u_0, SIM.f_multibody, SIM.dfdu_multibody, T_final, N, ODE.rk4)  # Results
+    u_0 = np.array(SIM.init_multibody())
+    u = ODE.predict(u_0, SIM.f_multibody, SIM.dfdu_multibody, T_final, 8000, ODE.rk4, v_0)  # Results
     p_eth = np.array([u[:, 1], u[:, 4]])                            # Positions of Earch
     p_moon = np.array([u[:, 1], u[:, 4]])                           # Positions of Moon
     p_sat = np.array([u[:, 2], u[:, 5]])                            # Positions of Satellite
@@ -108,6 +107,7 @@ def max_time(v_0):
         t_orbiting += dt  # 5 more minutes orbiting (dt)
         if kf<len(dists)-1:
             distance = dists[kf]
+            print(kf, len(dists))
         else:
             print('object is still in orbit after X weeks with:', v_0)
             i = 0
@@ -133,7 +133,6 @@ def max_time(v_0):
         pygame.draw.circle(screen, (0, 255, 0), cartesian_to_screen(p_eth[:, i] / 100000000), 3)
         i += 14
         pygame.display.flip()
-        fpsClock.tick(50000)
     return cost
 v_center = optimize.fmin(max_time,v_center, maxiter=100)
 
